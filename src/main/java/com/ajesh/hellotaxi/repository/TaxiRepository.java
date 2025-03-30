@@ -10,6 +10,8 @@ import org.springframework.data.repository.query.Param;
 import org.springframework.stereotype.Repository;
 import org.springframework.transaction.annotation.Transactional;
 
+import java.util.Optional;
+
 @Repository
 public interface TaxiRepository extends CrudRepository<Taxi, Long> {
 
@@ -17,4 +19,6 @@ public interface TaxiRepository extends CrudRepository<Taxi, Long> {
     @Transactional
     @Query("UPDATE Taxi t SET t.status = :status WHERE t.id = :id")
     int updateTaxiStatus(@Param("id") Long id, @Param("status") TaxiStatus status);
+
+    Optional<Taxi> findByLicensePlate(String licensePlate);
 }

@@ -38,6 +38,9 @@ public class DriverService {
      * @return the registered driver
      */
     public Driver addDriver(Driver driver) {
+        if (driver == null) {
+            throw new IllegalArgumentException("Driver details cannot be null.");
+        }
         return driverRepository.save(driver);
     }
 }

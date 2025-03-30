@@ -2,15 +2,19 @@ package com.ajesh.hellotaxi.service;
 
 import com.ajesh.hellotaxi.broker.BookingBroker;
 import com.ajesh.hellotaxi.enums.BookingStatus;
+import com.ajesh.hellotaxi.exception.TaxiAlreadyExistsException;
+import com.ajesh.hellotaxi.exception.TaxiBrokerException;
 import com.ajesh.hellotaxi.model.Booking;
 import com.ajesh.hellotaxi.model.Taxi;
 import com.ajesh.hellotaxi.repository.TaxiRepository;
 import jakarta.transaction.Transactional;
 import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.dao.DataIntegrityViolationException;
 import org.springframework.stereotype.Service;
 
 import java.util.ArrayList;
 import java.util.List;
+import java.util.Optional;
 
 /**
  * Service class responsible for managing taxi-related operations.
@@ -47,12 +51,23 @@ public class TaxiService {
      */
     @Transactional
     public Taxi addTaxi(Taxi taxi) {
+        // Check for taxi duplication based license plate
+        Optional<Taxi> existingTaxi = taxiRepository.findByLicensePlate(taxi.getLicensePlate());
+        if (existingTaxi.isPresent()) {
+            throw new TaxiAlreadyExistsException("Taxi with license plate " + taxi.getLicensePlate() + " already exists.");
+        }
+
         Taxi updatedTaxi = taxiRepository.save(taxi);
-        Long taxiId = updatedTaxi.getId();
-        bookingBroker.registerTaxi(taxiId, bookingId -> {
-            //check if taxi is available
-            System.out.println("Taxi " + taxiId + " received booking notification: " + bookingId);
-        });
+
+        try {
+            Long taxiId = updatedTaxi.getId();
+            bookingBroker.registerTaxi(taxiId, bookingId -> {
+                System.out.println("Taxi " + taxiId + " received booking notification: " + bookingId);
+            });
+        } catch (Exception e) {
+            throw new TaxiBrokerException("Failed to register taxi with booking broker.");
+        }
+
         return updatedTaxi;
     }
 

@@ -3,10 +3,12 @@ package com.ajesh.hellotaxi.service;
 import com.ajesh.hellotaxi.broker.BookingBroker;
 import com.ajesh.hellotaxi.enums.BookingStatus;
 import com.ajesh.hellotaxi.enums.TaxiStatus;
+import com.ajesh.hellotaxi.exception.*;
 import com.ajesh.hellotaxi.model.Booking;
 import com.ajesh.hellotaxi.model.Taxi;
 import com.ajesh.hellotaxi.repository.BookingRepository;
 import com.ajesh.hellotaxi.repository.TaxiRepository;
+import jakarta.persistence.EntityNotFoundException;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 
@@ -50,10 +52,23 @@ public class BookingService {
      * @param booking the booking to be created
      * @return the created booking
      */
+    @Transactional
     public Booking createBooking(Booking booking) {
         booking.setStatus(BookingStatus.INITIATED);
-        Booking savedBooking = bookingRepository.save(booking);
-        bookingBroker.publishBooking(savedBooking.getId(), savedBooking.getCategory());
+
+        Booking savedBooking;
+        try {
+            savedBooking = bookingRepository.save(booking);
+        } catch (Exception e) {
+            throw new BookingCreationException("Failed to create booking.");
+        }
+
+        try {
+            bookingBroker.publishBooking(savedBooking.getId(), savedBooking.getCategory());
+        } catch (Exception e) {
+            throw new BookingDispatchException("Booking created but failed to publish for dispatch.");
+        }
+
         return savedBooking;
     }
 
@@ -67,24 +82,27 @@ public class BookingService {
     @Transactional
     public boolean acceptBooking(Booking booking) {
         Optional<Booking> optionalBooking = bookingRepository.findById(booking.getId());
+        Booking existingBooking = bookingRepository.findById(booking.getId())
+                .orElseThrow(() -> new BookingNotFoundException("Booking not found with ID: " + booking.getId()));
 
-        if (optionalBooking.isPresent()) {
-            Booking existingBooking = optionalBooking.get();
+        // Check if the booking is still available
 
-            // Check if the booking is still available
-            if (existingBooking.getStatus() == BookingStatus.INITIATED) {
-                Taxi taxi = taxiRepository.findById(booking.getTaxi().getId()).orElse(null);
-                if (taxi == null || taxi.getStatus() != TaxiStatus.AVAILABLE) {
-                    return false;
-                }
-                existingBooking.setStatus(BookingStatus.ACCEPTED);
-                taxi.setStatus(TaxiStatus.BOOKED);
-                existingBooking.setTaxi(taxi);
-                bookingRepository.save(existingBooking);
-                return true;
-            }
+        if (existingBooking.getStatus() != BookingStatus.INITIATED) {
+            throw new BookingAlreadyAcceptedException("Booking has already been accepted.");
         }
-        return false;
+
+        Taxi taxi = taxiRepository.findById(booking.getTaxi().getId())
+                .orElseThrow(() -> new TaxiNotFoundException("Taxi not found with ID: " + booking.getTaxi().getId()));
+
+        if (taxi.getStatus() != TaxiStatus.AVAILABLE) {
+            throw new TaxiNotAvailableException("Taxi is not available.");
+        }
+
+        existingBooking.setStatus(BookingStatus.ACCEPTED);
+        taxi.setStatus(TaxiStatus.BOOKED);
+        existingBooking.setTaxi(taxi);
+        bookingRepository.save(existingBooking);
+        return true;
     }
 
     /**
@@ -94,13 +112,16 @@ public class BookingService {
      * @return {@code true} if the booking was successfully updated, otherwise {@code false}
      */
     public boolean pickupBooking(Booking booking) {
-        Booking existingBooking = bookingRepository.findById(booking.getId()).orElse(null);
-        if (existingBooking != null && existingBooking.getStatus() == BookingStatus.ACCEPTED) {
-            existingBooking.setStatus(BookingStatus.PICKEDUP);
-            bookingRepository.save(existingBooking);
-            return true;
+        Booking existingBooking = bookingRepository.findById(booking.getId())
+                .orElseThrow(() -> new BookingNotFoundException("Booking not found with ID: " + booking.getId()));
+
+        if (existingBooking.getStatus() != BookingStatus.ACCEPTED) {
+            throw new InvalidBookingStateException("Booking must be in ACCEPTED state to be picked up.");
         }
-        return false;
+
+        existingBooking.setStatus(BookingStatus.PICKEDUP);
+        bookingRepository.save(existingBooking);
+        return true;
     }
 
     /**
@@ -111,17 +132,21 @@ public class BookingService {
      */
     @Transactional
     public boolean completeBooking(Booking booking) {
-        Booking existingBooking = bookingRepository.findById(booking.getId()).orElse(null);
-        if (existingBooking != null && existingBooking.getStatus() == BookingStatus.PICKEDUP) {
-            existingBooking.setStatus(BookingStatus.COMPLETED);
-            Taxi taxi = existingBooking.getTaxi();
-            if (taxi != null) {
-                taxi.setStatus(TaxiStatus.AVAILABLE);
-                taxiRepository.save(taxi);
-            }
-            bookingRepository.save(existingBooking);
-            return true;
+        Booking existingBooking = bookingRepository.findById(booking.getId())
+                .orElseThrow(() -> new EntityNotFoundException("Booking not found with ID: " + booking.getId()));
+
+        if (existingBooking.getStatus() != BookingStatus.PICKEDUP) {
+            throw new IllegalStateException("Booking must be in PICKEDUP status to be completed.");
         }
-        return false;
+        existingBooking.setStatus(BookingStatus.COMPLETED);
+
+        Taxi taxi = existingBooking.getTaxi();
+        if (taxi != null) {
+            taxi.setStatus(TaxiStatus.AVAILABLE);
+            taxiRepository.save(taxi);
+        }
+
+        bookingRepository.save(existingBooking);
+        return true;
     }
 }
