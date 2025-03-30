@@ -11,29 +11,41 @@ import org.springframework.web.bind.annotation.*;
 
 import java.util.List;
 
+/**
+ * Controller for managing booking-related operations.
+ */
 @RestController
 public class BookingController {
 
     @Autowired
     BookingService bookingService;
 
+    /**
+     * Retrieves a list of all bookings based on status.
+     * @param status (optional) Filter bookings by status.
+     * @return List of bookings.
+     */
     @GetMapping("/bookings")
     public List<Booking> getAllBookings(@RequestParam(required = false) String status) {
         return bookingService.getAllBookings();
     }
 
-//    @PostMapping("/bookings/initiate")
-//    public ResponseEntity<Booking> createBooking(@RequestBody Booking booking) {
-//        return ResponseEntity.status(HttpStatus.CREATED).body(bookingService.createBooking(booking));
-//    }
-
-
+    /**
+     * Initiates a new booking.
+     * @param booking The booking details.
+     * @return The ID of the newly created booking.
+     */
     @PostMapping("/bookings/initiate")
     public ResponseEntity<Long> createBooking(@RequestBody Booking booking) {
         Long bookingId = bookingService.createBooking(booking).getId();
         return ResponseEntity.status(HttpStatus.CREATED).body(bookingId);
     }
 
+    /**
+     * Accepts a booking request.
+     * @param booking The booking details.
+     * @return Response indicating success or conflict.
+     */
     @PatchMapping("/bookings/accept")
     public ResponseEntity<String> acceptBooking(@RequestBody Booking booking) {
         boolean accepted = bookingService.acceptBooking(booking);
@@ -41,6 +53,11 @@ public class BookingController {
                 ResponseEntity.status(HttpStatus.CONFLICT).body("Booking already taken!");
     }
 
+    /**
+     * Marks a booking as picked up by a taxi.
+     * @param booking The booking details.
+     * @return Response indicating success or failure.
+     */
     @PatchMapping("/bookings/pickup")
     public ResponseEntity<String> pickupBooking(@RequestBody Booking booking) {
         boolean pickedUp = bookingService.pickupBooking(booking);
@@ -48,6 +65,11 @@ public class BookingController {
                 ResponseEntity.status(HttpStatus.CONFLICT).body("Booking pick up failed!");
     }
 
+    /**
+     * Marks a booking as completed.
+     * @param booking The booking details.
+     * @return Response indicating success or failure.
+     */
     @PatchMapping("/bookings/complete")
     public ResponseEntity<String> completeBooking(@RequestBody Booking booking) {
         boolean completed = bookingService.completeBooking(booking);

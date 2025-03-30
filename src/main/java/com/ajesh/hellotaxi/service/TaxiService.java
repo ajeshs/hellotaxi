@@ -12,6 +12,10 @@ import org.springframework.stereotype.Service;
 import java.util.ArrayList;
 import java.util.List;
 
+/**
+ * Service class responsible for managing taxi-related operations.
+ * Handles taxi retrieval, registration, and status updates.
+ */
 @Service
 public class TaxiService {
 
@@ -24,12 +28,24 @@ public class TaxiService {
         this.bookingBroker = bookingBroker;
     }
 
+    /**
+     * Retrieves all taxis from the repository.
+     *
+     * @return a list of all taxis
+     */
     public List<Taxi> getAllTaxis() {
         List<Taxi> taxisList = new ArrayList<>();
         taxiRepository.findAll().forEach(taxisList::add);
         return taxisList;
     }
 
+    /**
+     * Registers a new taxi and subscribes it to booking notifications via the broker.
+     *
+     * @param taxi the taxi to be registered
+     * @return the registered taxi
+     */
+    @Transactional
     public Taxi addTaxi(Taxi taxi) {
         Taxi updatedTaxi = taxiRepository.save(taxi);
         Long taxiId = updatedTaxi.getId();
@@ -40,6 +56,12 @@ public class TaxiService {
         return updatedTaxi;
     }
 
+    /**
+     * Updates the status of an existing taxi.
+     *
+     * @param taxi the taxi whose status needs to be updated
+     * @return {@code true} if the update was successful, otherwise {@code false}
+     */
     public boolean updateStatus(Taxi taxi) {
         int updatedRowsCount = taxiRepository.updateTaxiStatus(taxi.getId(), taxi.getStatus());
         return updatedRowsCount > 0;

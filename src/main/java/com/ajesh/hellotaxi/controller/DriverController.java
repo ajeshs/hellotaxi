@@ -10,21 +10,34 @@ import org.springframework.web.bind.annotation.*;
 
 import java.util.List;
 
+/**
+ * Controller for managing driver-related operations.
+ */
 @RestController
 public class DriverController {
 
     @Autowired
     private DriverService driverService;
 
+    /**
+     * Retrieves a list of all registered drivers.
+     *
+     * @return List of all drivers.
+     */
     @GetMapping("/drivers")
     public List<Driver> getAllDrivers() {
         return driverService.getAllDrivers();
     }
 
+    /**
+     * Registers a new driver in the system.
+     *
+     * @param driver The driver details to be registered.
+     * @return The ID of the newly registered driver.
+     */
     @PostMapping("/drivers/register")
     public ResponseEntity<Long> register(@RequestBody Driver driver) {
         Driver registeredDriver = driverService.addDriver(driver);
-//        return ResponseEntity.ok("Driver " + driver.getName() + " registered successfully.");
         return ResponseEntity.status(HttpStatus.CREATED).body(registeredDriver.getId());
     }
 }

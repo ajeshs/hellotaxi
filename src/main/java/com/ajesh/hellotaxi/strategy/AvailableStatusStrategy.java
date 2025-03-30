@@ -1,14 +1,15 @@
 package com.ajesh.hellotaxi.strategy;
 
-import com.ajesh.hellotaxi.broker.BookingBroker;
 import com.ajesh.hellotaxi.enums.TaxiStatus;
 import com.ajesh.hellotaxi.repository.TaxiRepository;
-import org.springframework.beans.factory.annotation.Autowired;
-import org.springframework.stereotype.Component;
 
 import java.util.Map;
 import java.util.function.Consumer;
 
+/**
+ * A booking dispatch strategy that sends booking notifications only to available taxis.
+ * This ensures that only taxis with an AVAILABLE status receive booking requests.
+ */
 public class AvailableStatusStrategy implements BookingDispatchStrategy {
 
     private final TaxiRepository taxiRepository;
@@ -17,6 +18,12 @@ public class AvailableStatusStrategy implements BookingDispatchStrategy {
         this.taxiRepository = taxiRepository;
     }
 
+    /**
+     * Dispatches a booking request to all registered taxis that are currently available.
+     *
+     * @param bookingId       the ID of the booking to be dispatched
+     * @param taxiSubscribers a map of registered taxis and their respective booking handlers
+     */
     @Override
     public void dispatch(Long bookingId, Map<Long, Consumer<Long>> taxiSubscribers) {
         System.out.println("Available Strategy: Sending booking " + bookingId + " only to available taxis...");

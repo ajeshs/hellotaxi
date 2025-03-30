@@ -10,14 +10,22 @@ import org.springframework.web.bind.annotation.RestController;
 
 import java.util.Map;
 
+/**
+ * Controller for handling analytics-related operations.
+ */
 @Controller
 @RequestMapping("/analytics")
 public class AnalyticsController {
 
-
     @Autowired
     private AnalyticsService analyticsService;
 
+    /**
+     * Displays analytics data related to bookings.
+     *
+     * @param model The model to store analytics data for the view.
+     * @return The name of the analytics view template.
+     */
     @GetMapping
     public String showAnalytics(Model model) {
         Map<String, Object> analyticsData = analyticsService.getBookingAnalytics();
@@ -28,6 +36,6 @@ public class AnalyticsController {
         model.addAttribute("bookingsPerDay", analyticsData.get("bookingsPerDay"));
         model.addAttribute("mostActiveTaxis", analyticsData.get("mostActiveTaxis"));
 
-        return "analytics"; // This should match "analytics.html" in templates/
+        return "analytics";
     }
 }
