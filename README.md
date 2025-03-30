@@ -2,8 +2,8 @@
 Simple Taxi booking service
 
 ## Summary
-This is a simple taxi booking application 
-1. The data is store in an in-memory DB called H2DB. Being an in-memory DB, all data will be lost on restart of the application.
+This is a simple taxi booking application built using SpringBoot
+1. The data is stored in an in-memory DB called H2DB. Being an in-memory DB, all data will be lost on restart of the application.
 2. There are locations which are identified by a number for simplicity. These can be added using the LocationController APIs. 
 3. There are Drivers, which can be added using the DriverController APIs. 
 4. There are Taxis, which have an associated driver, location and status (AVAILABLE/BOOKED).
