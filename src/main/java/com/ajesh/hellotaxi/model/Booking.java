@@ -20,7 +20,7 @@ public class Booking {
     @ManyToOne
     private Location destination;
 
-    @OneToOne(cascade = CascadeType.MERGE)
+    @ManyToOne(cascade = CascadeType.MERGE)
     private Taxi taxi;
 
     @Enumerated(EnumType.STRING)

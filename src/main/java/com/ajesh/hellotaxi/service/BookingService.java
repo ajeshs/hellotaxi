@@ -85,7 +85,6 @@ public class BookingService {
      */
     @Transactional
     public boolean acceptBooking(Booking booking) {
-        Optional<Booking> optionalBooking = bookingRepository.findById(booking.getId());
         Booking existingBooking = bookingRepository.findById(booking.getId())
                 .orElseThrow(() -> new BookingNotFoundException("Booking not found with ID: " + booking.getId()));
 
