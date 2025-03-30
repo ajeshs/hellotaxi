@@ -3,6 +3,7 @@ package com.ajesh.hellotaxi.service;
 import com.ajesh.hellotaxi.broker.BookingBroker;
 import com.ajesh.hellotaxi.enums.BookingStatus;
 import com.ajesh.hellotaxi.enums.TaxiStatus;
+import com.ajesh.hellotaxi.exception.BookingNotFoundException;
 import com.ajesh.hellotaxi.model.Booking;
 import com.ajesh.hellotaxi.model.Taxi;
 import com.ajesh.hellotaxi.repository.BookingRepository;
@@ -89,8 +90,10 @@ class BookingServiceTest {
     @Test
     void testAcceptBooking_Failure() {
         when(bookingRepository.findById(1L)).thenReturn(Optional.empty());
-        boolean result = bookingService.acceptBooking(booking);
-        assertFalse(result);
+
+        assertThrows(BookingNotFoundException.class, () -> {
+            bookingService.acceptBooking(booking);
+        });
     }
 
     @Test
