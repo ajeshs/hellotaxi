@@ -1,5 +1,6 @@
 package com.ajesh.hellotaxi.controller;
 
+import com.ajesh.hellotaxi.enums.BookingStatus;
 import com.ajesh.hellotaxi.model.Booking;
 import com.ajesh.hellotaxi.model.Taxi;
 import com.ajesh.hellotaxi.service.BookingService;
@@ -26,8 +27,8 @@ public class BookingController {
      * @return List of bookings.
      */
     @GetMapping("/bookings")
-    public List<Booking> getAllBookings(@RequestParam(required = false) String status) {
-        return bookingService.getAllBookings();
+    public List<Booking> getAllBookings(@RequestParam(required = false) BookingStatus status) {
+        return bookingService.getAllBookings(status);
     }
 
     /**

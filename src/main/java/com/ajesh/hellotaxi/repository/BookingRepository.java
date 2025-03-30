@@ -37,4 +37,5 @@ public interface BookingRepository extends CrudRepository<Booking, Long> {
     @Query("SELECT CAST(b.bookingTime AS date), COUNT(b) FROM Booking b GROUP BY CAST(b.bookingTime AS date)")
     List<Object[]> getBookingsPerDay();
 
+    List<Booking> findByStatus(BookingStatus status);
 }

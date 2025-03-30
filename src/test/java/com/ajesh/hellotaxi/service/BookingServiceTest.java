@@ -52,7 +52,7 @@ class BookingServiceTest {
     @Test
     void testGetAllBookings() {
         when(bookingRepository.findAll()).thenReturn(List.of(booking));
-        List<Booking> result = bookingService.getAllBookings();
+        List<Booking> result = bookingService.getAllBookings(null);
         assertEquals(1, result.size());
         assertEquals(booking, result.get(0));
     }

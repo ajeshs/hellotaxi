@@ -40,7 +40,11 @@ public class BookingService {
      *
      * @return a list of all bookings
      */
-    public List<Booking> getAllBookings() {
+    public List<Booking> getAllBookings(BookingStatus status) {
+        if (status != null) {
+            return bookingRepository.findByStatus(status);
+        }
+
         List<Booking> bookingList = new ArrayList<>();
         bookingRepository.findAll().forEach(bookingList::add);
         return bookingList;
